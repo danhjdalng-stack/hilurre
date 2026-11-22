@@ -1,0 +1,2004 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Winter Whisper — Khúc Nhạc Mùa Đông</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ==========================================================================
+       1. CẤU HÌNH BIẾN CSS & DỄ DÀNG TÙY CHỈNH MÀU SẮC
+       ========================================================================== */
+    :root {
+      --bg-sky-top: #070d19;
+      --bg-sky-mid: #10203b;
+      --bg-sky-bot: #1d3557;
+      --aurora-1: rgba(56, 189, 248, 0.22);
+      --aurora-2: rgba(167, 139, 250, 0.18);
+      --aurora-3: rgba(52, 211, 153, 0.14);
+      --warm-glow: rgba(251, 191, 36, 0.28);
+      --glass-bg: rgba(15, 23, 42, 0.52);
+      --glass-border: rgba(226, 232, 240, 0.22);
+      --glass-highlight: rgba(255, 255, 255, 0.35);
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --accent-gold: #fcd34d;
+      --accent-ice: #7dd3fc;
+      --accent-rose: #fda4af;
+      --paper-bg: #fdfbf7;
+      --paper-text: #1e293b;
+      --font-serif: 'Cormorant Garamond', Georgia, serif;
+      --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: var(--bg-sky-top);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+    }
+
+    /* ==========================================================================
+       2. HỆ THỐNG STAGE ĐỒNG NHẤT BỐ CỤC PC & ĐIỆN THOẠI (UNIFIED VIEWPORT STAGE)
+       Giữ nguyên bố cục 16:9 / 16:10 đồng bộ trên mọi thiết bị bằng transform scale
+       ========================================================================== */
+    #viewport-wrapper {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 50% 30%, #132544 0%, #050912 100%);
+    }
+
+    /* Canvas toàn màn hình cho bầu trời, cực quang, núi parallax, tuyết, hoa & hộp quà */
+    #winter-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      z-index: 1;
+      touch-action: none;
+    }
+
+    /* Lớp phủ sương băng & ánh sáng ấm áp động khi mở thư / hộp quà */
+    #atmosphere-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 2;
+      background: radial-gradient(circle at 50% 50%, transparent 45%, rgba(186, 230, 253, 0.08) 100%);
+      box-shadow: inset 0 0 90px rgba(125, 211, 252, 0.14);
+      transition: background 0.9s ease, box-shadow 0.9s ease, backdrop-filter 0.9s ease;
+    }
+
+    #atmosphere-overlay.warm-focus {
+      background: radial-gradient(circle at 50% 50%, rgba(251, 191, 36, 0.12) 0%, rgba(7, 13, 25, 0.65) 100%);
+      box-shadow: inset 0 0 120px rgba(251, 191, 36, 0.22);
+      backdrop-filter: blur(3px);
+    }
+
+    /* Sân khấu UI chuẩn hóa 1366x768, tự động co giãn vừa khít mọi màn hình */
+    #unified-stage {
+      position: relative;
+      width: 1366px;
+      height: 768px;
+      z-index: 3;
+      transform-origin: center center;
+      pointer-events: none; /* Cho phép xuyên qua vùng trống xuống canvas */
+      will-change: transform;
+    }
+
+    .interactive-el {
+      pointer-events: auto;
+    }
+
+    /* ==========================================================================
+       3. HEADER & BẢNG ĐIỀU KHIỂN NHỎ GỌN (COLLAPSIBLE CONTROL BAR)
+       ========================================================================== */
+    .top-bar {
+      position: absolute;
+      top: 28px;
+      left: 44px;
+      right: 44px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 20;
+    }
+
+    .brand-badge {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 10px 20px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 999px;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.28);
+    }
+
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      color: var(--accent-ice);
+      animation: spinSlow 24s linear infinite;
+    }
+
+    .brand-title {
+      font-family: var(--font-serif);
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--text-primary);
+    }
+
+    .brand-sub {
+      font-size: 12px;
+      color: var(--accent-ice);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0.85;
+    }
+
+    /* Cụm nút điều khiển góc phải */
+    .control-cluster {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .glass-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 18px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 999px;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+                  border-color 0.25s ease,
+                  background-color 0.25s ease,
+                  box-shadow 0.25s ease;
+    }
+
+    .glass-btn:hover {
+      transform: translateY(-2px) scale(1.03);
+      border-color: var(--glass-highlight);
+      background: rgba(30, 41, 59, 0.72);
+      box-shadow: 0 10px 28px rgba(125, 211, 252, 0.22);
+    }
+
+    .glass-btn:active {
+      transform: scale(0.97);
+    }
+
+    .glass-btn.active-sound {
+      border-color: rgba(252, 211, 77, 0.6);
+      box-shadow: 0 0 20px rgba(252, 211, 77, 0.25);
+    }
+
+    .sound-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #64748b;
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .active-sound .sound-dot {
+      background: var(--accent-gold);
+      box-shadow: 0 0 10px var(--accent-gold);
+    }
+
+    /* Bảng điều khiển mở rộng (Collapsible Control Panel) */
+    .control-drawer {
+      position: absolute;
+      top: 84px;
+      right: 44px;
+      width: 320px;
+      padding: 20px;
+      background: rgba(11, 19, 36, 0.82);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      backdrop-filter: blur(18px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+      z-index: 25;
+      opacity: 0;
+      transform: translateY(-12px) scale(0.96);
+      pointer-events: none;
+      transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .control-drawer.open {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .drawer-row {
+      margin-bottom: 16px;
+    }
+
+    .drawer-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .drawer-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+    }
+
+    .drawer-slider {
+      width: 100%;
+      accent-color: var(--accent-ice);
+      cursor: pointer;
+    }
+
+    .drawer-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .mini-btn {
+      padding: 9px 10px;
+      font-size: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .mini-btn:hover {
+      background: rgba(125, 211, 252, 0.18);
+      border-color: var(--accent-ice);
+    }
+
+    /* ==========================================================================
+       4. BỐ CỤC CHÍNH 3 CỘT ĐỒNG BỘ: KHUNG KỶ NIỆM - HỘP QUÀ HẠT SÁNG - LÁ THƯ
+       ========================================================================== */
+    .main-grid {
+      position: absolute;
+      top: 112px;
+      left: 44px;
+      right: 44px;
+      bottom: 86px;
+      display: grid;
+      grid-template-columns: 350px 1fr 350px;
+      gap: 28px;
+      align-items: center;
+    }
+
+    /* Cột trái: Các khung hình / Thẻ kỷ niệm mùa đông với hiệu ứng Stagger & 3D Tilt */
+    .frames-column {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      height: 100%;
+      justify-content: center;
+    }
+
+    .winter-card {
+      position: relative;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 22px;
+      padding: 16px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.32);
+      cursor: pointer;
+      transform-style: preserve-3d;
+      opacity: 0;
+      transform: translateY(28px);
+      transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                  border-color 0.35s ease,
+                  box-shadow 0.35s ease;
+      animation: cardStaggerIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards,
+                 floatGentle 6s ease-in-out infinite;
+    }
+
+    .winter-card:nth-child(1) { animation-delay: 0.15s, 0s; }
+    .winter-card:nth-child(2) { animation-delay: 0.35s, 1.5s; }
+    .winter-card:nth-child(3) { animation-delay: 0.55s, 3s; }
+
+    .winter-card:hover {
+      border-color: rgba(125, 211, 252, 0.65);
+      box-shadow: 0 18px 44px rgba(56, 189, 248, 0.24), inset 0 0 20px rgba(255, 255, 255, 0.08);
+    }
+
+    .card-inner {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .card-art {
+      width: 68px;
+      height: 68px;
+      border-radius: 16px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(56, 189, 248, 0.2), rgba(251, 191, 36, 0.15));
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      overflow: hidden;
+    }
+
+    .card-meta h3 {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+
+    .card-meta p {
+      font-size: 12.5px;
+      line-height: 1.45;
+      color: var(--text-secondary);
+    }
+
+    .card-tag {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 10.5px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent-ice);
+    }
+
+    /* Cột giữa: Khu vực tương tác Hộp quà Hạt sáng (Particle Gift Box Zone) */
+    .center-showcase {
+      position: relative;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      pointer-events: none;
+    }
+
+    .hero-caption {
+      text-align: center;
+      opacity: 0;
+      animation: fadeSlideDown 1s ease 0.2s forwards;
+    }
+
+    .hero-caption h1 {
+      font-family: var(--font-serif);
+      font-size: 42px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      background: linear-gradient(180deg, #ffffff 10%, #bae6fd 90%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 10px 30px rgba(56, 189, 248, 0.25);
+    }
+
+    .hero-caption p {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      letter-spacing: 0.03em;
+    }
+
+    /* Vùng bấm vô hình khớp chính xác vị trí Hộp quà trên Canvas */
+    #gift-hitbox {
+      width: 270px;
+      height: 270px;
+      border-radius: 50%;
+      cursor: pointer;
+      pointer-events: auto;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .gift-hint-pill {
+      padding: 8px 18px;
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(252, 211, 77, 0.45);
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--accent-gold);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 20px rgba(251, 191, 36, 0.2);
+      animation: pulseSoft 2.6s ease-in-out infinite;
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    /* Cột phải: Phong bì & Lá thư Mùa Đông có Animation mở mượt mà */
+    .letter-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+
+    .envelope-wrapper {
+      width: 330px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 26px;
+      padding: 24px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.38);
+      text-align: center;
+      opacity: 0;
+      animation: cardStaggerIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.45s forwards;
+      transition: transform 0.4s ease, border-color 0.4s ease;
+    }
+
+    .envelope-wrapper:hover {
+      border-color: rgba(253, 164, 175, 0.55);
+      transform: translateY(-4px);
+    }
+
+    /* Minh họa phong bì 3D CSS */
+    .envelope-visual {
+      position: relative;
+      width: 240px;
+      height: 156px;
+      margin: 8px auto 20px;
+      background: linear-gradient(145deg, #f3e8d8, #e6d5bc);
+      border-radius: 14px;
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+      cursor: pointer;
+      perspective: 900px;
+      overflow: hidden;
+    }
+
+    .envelope-flap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 92px;
+      background: linear-gradient(180deg, #dfd0b8, #cbb89d);
+      clip-path: polygon(0 0, 50% 85%, 100% 0);
+      transform-origin: top center;
+      transition: transform 0.75s cubic-bezier(0.34, 1.56, 0.64, 1);
+      z-index: 4;
+    }
+
+    .envelope-wrapper.opened .envelope-flap {
+      transform: rotateX(180deg);
+    }
+
+    .envelope-pocket {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 40%, rgba(180, 155, 125, 0.35) 100%);
+      clip-path: polygon(0 100%, 50% 42%, 100% 100%);
+      z-index: 3;
+    }
+
+    .wax-seal {
+      position: absolute;
+      top: 56px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #f43f5e, #9f1239);
+      box-shadow: 0 4px 12px rgba(159, 18, 57, 0.55), inset 0 2px 4px rgba(255, 255, 255, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffe4e6;
+      font-family: var(--font-serif);
+      font-size: 18px;
+      font-weight: 700;
+      z-index: 5;
+      transition: transform 0.5s ease, opacity 0.4s ease;
+    }
+
+    .envelope-wrapper.opened .wax-seal {
+      transform: translateX(-50%) scale(1.3);
+      opacity: 0;
+    }
+
+    .letter-peek {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 10px;
+      height: 120px;
+      background: var(--paper-bg);
+      border-radius: 8px;
+      padding: 12px;
+      color: var(--paper-text);
+      font-family: var(--font-serif);
+      font-size: 14px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+      transform: translateY(35px);
+      transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.15s;
+      z-index: 2;
+    }
+
+    .envelope-wrapper.opened .letter-peek {
+      transform: translateY(-14px);
+    }
+
+    .envelope-title {
+      font-family: var(--font-serif);
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .envelope-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      margin-bottom: 18px;
+    }
+
+    .primary-winter-btn {
+      width: 100%;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+      color: #081021;
+      font-weight: 600;
+      font-size: 13.5px;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(56, 189, 248, 0.35);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .primary-winter-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 30px rgba(129, 140, 248, 0.5);
+    }
+
+    /* ==========================================================================
+       5. MODAL CHUYỂN CẢNH MƯỢT: TRẢI GIẤY LÁ THƯ, KHUNG KỶ NIỆM & LỜI NHẮN HỘP QUÀ
+       ========================================================================== */
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(4, 9, 20, 0.62);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 40;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .modal-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Tờ giấy thư mở rộng */
+    .letter-sheet {
+      position: relative;
+      width: 680px;
+      max-height: 620px;
+      background: linear-gradient(180deg, #fffdf9 0%, #f7f1e3 100%);
+      color: var(--paper-text);
+      border-radius: 20px;
+      padding: 46px 54px;
+      box-shadow: 0 30px 90px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(251, 191, 36, 0.35);
+      transform: translateY(40px) scale(0.92) rotateX(8deg);
+      opacity: 0;
+      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s ease;
+      overflow-y: auto;
+    }
+
+    .modal-backdrop.active .letter-sheet {
+      transform: translateY(0) scale(1) rotateX(0deg);
+      opacity: 1;
+    }
+
+    .sheet-ornament {
+      text-align: center;
+      color: #b45309;
+      font-size: 18px;
+      letter-spacing: 0.3em;
+      margin-bottom: 12px;
+      opacity: 0.75;
+    }
+
+    .sheet-photo-box {
+      width: 100%;
+      max-height: 220px;
+      margin-bottom: 18px;
+      border-radius: 14px;
+      overflow: hidden;
+      display: none;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+      border: 1px solid rgba(180, 83, 9, 0.22);
+    }
+
+    .sheet-photo-box.has-photo {
+      display: block;
+    }
+
+    .sheet-photo-box img {
+      width: 100%;
+      height: 220px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .sheet-heading {
+      font-family: var(--font-serif);
+      font-size: 34px;
+      font-weight: 700;
+      text-align: center;
+      color: #1e293b;
+      margin-bottom: 22px;
+      border-bottom: 1px solid rgba(180, 83, 9, 0.2);
+      padding-bottom: 14px;
+    }
+
+    .sheet-body {
+      font-family: var(--font-serif);
+      font-size: 21px;
+      line-height: 1.72;
+      color: #334155;
+      min-height: 220px;
+      white-space: pre-line;
+    }
+
+    .sheet-footer {
+      margin-top: 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(180, 83, 9, 0.15);
+      padding-top: 16px;
+    }
+
+    .sheet-sign {
+      font-family: var(--font-serif);
+      font-style: italic;
+      font-size: 20px;
+      color: #9f1239;
+    }
+
+    .close-sheet-btn {
+      padding: 10px 22px;
+      border-radius: 999px;
+      border: 1px solid #cbd5e1;
+      background: #1e293b;
+      color: #f8fafc;
+      font-size: 13px;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease;
+    }
+
+    .close-sheet-btn:hover {
+      background: #0f172a;
+      transform: scale(1.04);
+    }
+
+    /* ==========================================================================
+       6. THANH GỢI Ý TƯƠNG TÁC ĐÁY MÀN HÌNH & CON TRỎ CHUỘT TÙY CHỈNH (PC)
+       ========================================================================== */
+    .bottom-dock {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 10px 24px;
+      background: rgba(11, 19, 36, 0.58);
+      border: 1px solid var(--glass-border);
+      border-radius: 999px;
+      backdrop-filter: blur(12px);
+      font-size: 12px;
+      color: var(--text-secondary);
+      z-index: 15;
+    }
+
+    .dock-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dock-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent-ice);
+    }
+
+    /* Con trỏ chuột tùy chỉnh trên thiết bị có chuột (PC) */
+    @media (hover: hover) and (pointer: fine) {
+      body, button, a, #gift-hitbox, .winter-card, .envelope-visual {
+        cursor: none !important;
+      }
+
+      #custom-cursor-ring, #custom-cursor-dot {
+        position: fixed;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 9999;
+        border-radius: 50%;
+        transform: translate3d(-100px, -100px, 0);
+        will-change: transform, width, height, border-color;
+      }
+
+      #custom-cursor-dot {
+        width: 8px;
+        height: 8px;
+        margin-left: -4px;
+        margin-top: -4px;
+        background: #ffffff;
+        box-shadow: 0 0 12px #7dd3fc, 0 0 24px #38bdf8;
+      }
+
+      #custom-cursor-ring {
+        width: 36px;
+        height: 36px;
+        margin-left: -18px;
+        margin-top: -18px;
+        border: 1.5px solid rgba(186, 230, 253, 0.65);
+        background: radial-gradient(circle, rgba(125, 211, 252, 0.12) 0%, transparent 70%);
+        transition: width 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+                    height 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+                    margin 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+                    border-color 0.25s ease,
+                    background 0.25s ease;
+      }
+
+      #custom-cursor-ring.cursor-hover {
+        width: 56px;
+        height: 56px;
+        margin-left: -28px;
+        margin-top: -28px;
+        border-color: var(--accent-gold);
+        background: radial-gradient(circle, rgba(252, 211, 77, 0.22) 0%, transparent 70%);
+      }
+
+      #custom-cursor-ring.cursor-gift {
+        width: 68px;
+        height: 68px;
+        margin-left: -34px;
+        margin-top: -34px;
+        border: 2px dashed var(--accent-gold);
+        background: radial-gradient(circle, rgba(252, 211, 77, 0.28) 0%, transparent 70%);
+      }
+    }
+
+    @media (hover: none), (pointer: coarse) {
+      #custom-cursor-ring, #custom-cursor-dot {
+        display: none !important;
+      }
+    }
+
+    /* ==========================================================================
+       7. KEYFRAMES ANIMATION
+       ========================================================================== */
+    @keyframes spinSlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes cardStaggerIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeSlideDown {
+      from { opacity: 0; transform: translateY(-18px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes floatGentle {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-7px); }
+    }
+
+    @keyframes pulseSoft {
+      0%, 100% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.05); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div id="viewport-wrapper">
+    <!-- Lớp Canvas 2D hiệu năng cao vẽ Bầu trời, Cực quang, Núi Parallax, Tuyết, Cánh hoa & Hộp quà Hạt sáng -->
+    <canvas id="winter-canvas"></canvas>
+
+    <!-- Lớp phủ điều tiết ánh sáng ấm / sương giá -->
+    <div id="atmosphere-overlay"></div>
+
+    <!-- Con trỏ tùy chỉnh (chỉ hiển thị trên PC) -->
+    <div id="custom-cursor-ring"></div>
+    <div id="custom-cursor-dot"></div>
+
+    <!-- Sân khấu UI chuẩn hóa tỷ lệ đồng nhất PC & Điện thoại -->
+    <main id="unified-stage">
+      <!-- Thanh điều hướng & Bảng điều khiển -->
+      <header class="top-bar">
+        <div class="brand-badge interactive-el" data-cursor="hover">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M19.07 4.93L4.93 19.07M12 6l-2-2m2 2l2-2m-2 14l-2 2m2-2l2 2M6 12l-2-2m2 2l-2 2m14-2l2-2m-2 2l2 2"/>
+          </svg>
+          <div>
+            <div class="brand-title">Winter Whisper</div>
+            <div class="brand-sub">Dạ Khúc Tuyết Rơi</div>
+          </div>
+        </div>
+
+        <div class="control-cluster">
+          <button id="btn-sound" class="glass-btn active-sound interactive-el" data-cursor="hover" aria-label="Bật tắt âm thanh">
+            <span class="sound-dot"></span>
+            <span id="sound-label">Âm thanh: Bật</span>
+          </button>
+
+          <button id="btn-toggle-drawer" class="glass-btn interactive-el" data-cursor="hover" aria-label="Bảng tùy chỉnh">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            <span>Tùy chỉnh</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Bảng điều khiển thu gọn (Collapsible Control Bar) -->
+      <aside id="control-drawer" class="control-drawer interactive-el">
+        <div class="drawer-row">
+          <div class="drawer-label">
+            <span>Cường độ Tuyết & Cánh hoa</span>
+            <span id="val-density">100%</span>
+          </div>
+          <input id="slider-density" class="drawer-slider" type="range" min="20" max="160" value="100" />
+        </div>
+
+        <div class="drawer-row">
+          <div class="drawer-label">
+            <span>Sức gió mùa đông</span>
+            <span id="val-wind">Nhẹ nhàng</span>
+          </div>
+          <input id="slider-wind" class="drawer-slider" type="range" min="-100" max="100" value="25" />
+        </div>
+
+        <div class="drawer-actions">
+          <button id="btn-reform-gift" class="mini-btn" data-cursor="hover">Tụ lại Hộp quà</button>
+          <button id="btn-open-letter-quick" class="mini-btn" data-cursor="hover">Mở Lá thư</button>
+          <button id="btn-burst-magic" class="mini-btn" data-cursor="hover">Bung ánh sáng</button>
+          <button id="btn-toggle-warmth" class="mini-btn" data-cursor="hover">Ánh sáng ấm</button>
+        </div>
+      </aside>
+
+      <!-- Bố cục 3 cột đồng bộ trên mọi thiết bị -->
+      <section class="main-grid">
+        <!-- CỘT 1: 3 Khung hình / Thẻ kỷ niệm mùa đông -->
+        <div class="frames-column">
+          <article class="winter-card interactive-el" data-card-index="0" data-cursor="hover">
+            <div class="card-inner">
+              <div class="card-art">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="1.6">
+                  <path d="M12 3l1.9 5.8h6.1l-4.9 3.6 1.9 5.8-5-3.6-5 3.6 1.9-5.8-4.9-3.6h6.1z"/>
+                </svg>
+              </div>
+              <div class="card-meta">
+                <h3>Đêm Cực Quang</h3>
+                <p>Dải sáng xanh ngọc trôi nhẹ trên đỉnh núi phủ đầy tuyết trắng.</p>
+                <span class="card-tag">Khung kỷ niệm I • Chạm để xem</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="winter-card interactive-el" data-card-index="1" data-cursor="hover">
+            <div class="card-inner">
+              <div class="card-art">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fda4af" stroke-width="1.6">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+              </div>
+              <div class="card-meta">
+                <h3>Cánh Hoa Trong Gió</h3>
+                <p>Những cánh hoa đông mỏng manh xoay tròn hòa nhịp cùng bông tuyết.</p>
+                <span class="card-tag">Khung kỷ niệm II • Chạm để xem</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="winter-card interactive-el" data-card-index="2" data-cursor="hover">
+            <div class="card-inner">
+              <div class="card-art">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fcd34d" stroke-width="1.6">
+                  <path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5z"/>
+                </svg>
+              </div>
+              <div class="card-meta">
+                <h3>Ánh Đèn Bên Thềm</h3>
+                <p>Ngôi nhà gỗ nhỏ tỏa hơi ấm dịu dàng giữa thung lũng mùa đông.</p>
+                <span class="card-tag">Khung kỷ niệm III • Chạm để xem</span>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- CỘT 2: Trung tâm Hộp quà Hạt sáng hội tụ -->
+        <div class="center-showcase">
+          <div class="hero-caption">
+            <h1>Mùa Đông An Lành</h1>
+            <p>Vuốt tạo gió • Chạm giữ gom sáng • Nhấn vào Hộp quà hạt sáng</p>
+          </div>
+
+          <div id="gift-hitbox" class="interactive-el" data-cursor="gift" role="button" tabindex="0" aria-label="Mở hộp quà mùa đông">
+            <div id="gift-hint" class="gift-hint-pill">✨ Chạm vào Hộp Quà Hạt Sáng</div>
+          </div>
+        </div>
+
+        <!-- CỘT 3: Phong bì & Lá thư Mùa Đông -->
+        <div class="letter-column">
+          <div id="envelope-card" class="envelope-wrapper interactive-el" data-cursor="hover">
+            <div id="envelope-trigger" class="envelope-visual" role="button" tabindex="0" aria-label="Mở phong bì thư">
+              <div class="envelope-flap"></div>
+              <div class="letter-peek">Gửi người phương xa,<br/>Mùa đông này thật dịu dàng...</div>
+              <div class="envelope-pocket"></div>
+              <div class="wax-seal">❄</div>
+            </div>
+            <h2 class="envelope-title">Lá Thư Mùa Đông</h2>
+            <p class="envelope-desc">Một vài dòng tâm tình được niêm phong bằng dấu sáp tuyết, chờ bạn mở ra.</p>
+            <button id="btn-open-letter" class="primary-winter-btn">Mở & Đọc Lá Thư</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Thanh gợi ý thao tác nhanh dưới cùng -->
+      <footer class="bottom-dock">
+        <div class="dock-item"><span class="dock-dot"></span><span>Di chuột / Vuốt: Thổi gió tuyết</span></div>
+        <div class="dock-item"><span class="dock-dot"></span><span>Nhấn giữ: Gom hạt ánh sáng</span></div>
+        <div class="dock-item"><span class="dock-dot"></span><span>Hộp quà & Lá thư: Hiệu ứng bất ngờ</span></div>
+      </footer>
+
+      <!-- Modal hiển thị Lá thư / Khung kỷ niệm / Lời nhắn Hộp quà -->
+      <div id="story-modal" class="modal-backdrop interactive-el">
+        <article class="letter-sheet">
+          <div id="modal-ornament" class="sheet-ornament">❄ ✦ ❄</div>
+          <div id="modal-photo-box" class="sheet-photo-box">
+            <img id="modal-photo" src="" alt="Hình ảnh mùa đông" onerror="this.parentElement.classList.remove('has-photo')" />
+          </div>
+          <h2 id="modal-title" class="sheet-heading">Gửi Mùa Đông Dịu Dàng</h2>
+          <div id="modal-body" class="sheet-body"></div>
+          <div class="sheet-footer">
+            <span id="modal-sign" class="sheet-sign">— Từ trái tim mùa đông</span>
+            <button id="btn-close-modal" class="close-sheet-btn" data-cursor="hover">Gấp lại nhẹ nhàng</button>
+          </div>
+        </article>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    /**
+     * ============================================================================
+     * CẤU HÌNH NỘI DUNG DỄ TÙY CHỈNH (USER CUSTOMIZATION CONFIG)
+     * Bạn có thể sửa nhanh nội dung lá thư, lời nhắn hộp quà, thẻ kỷ niệm và hạt tại đây.
+     * ============================================================================
+     */
+    const WINTER_CONFIG = {
+      // 1. Nội dung Lá thư chính (có thể thêm imageUrl nếu muốn chèn ảnh vào thư)
+      letter: {
+        ornament: "❄ ✦ LÁ THƯ MÙA ĐÔNG ✦ ❄",
+        title: "Gửi Người Giữa Trời Đông",
+        imageUrl: "https://images.unsplash.com/photo-1483664852095-d6cc6870702d?auto=format&fit=crop&w=900&q=80",
+        content: `Khi những bông tuyết đầu mùa khẽ chạm lên ô cửa sổ, cả thế giới dường như chậm lại một nhịp để lắng nghe tiếng gió thì thầm.\n\nCảm ơn bạn đã đi qua những ngày bận rộn với thật nhiều kiên nhẫn và ấm áp. Mong rằng trong khoảnh khắc bình yên này, mọi lo âu đều tan biến như sương sớm, nhường chỗ cho niềm vui trong trẻo và những điều kỳ diệu sắp ghé thăm.\n\nChúc bạn một mùa đông thật an nhiên, ấm áp từ trái tim đến từng cái nắm tay.`,
+        signature: "— Thân mến, Gửi từ Dạ Khúc Mùa Đông"
+      },
+
+      // 2. Lời nhắn bất ngờ khi mở Hộp quà hạt sáng
+      giftMessage: {
+        ornament: "✨ 🎁 MÓN QUÀ ÁNH SÁNG 🎁 ✨",
+        title: "Điều Ước Mùa Đông Đã Mở!",
+        imageUrl: "https://images.unsplash.com/photo-1512389142860-9c449e58a543?auto=format&fit=crop&w=900&q=80",
+        content: `Hàng trăm hạt sáng đã hội tụ và bung tỏa để gửi tới bạn một lời chúc đặc biệt:\n\n"Chúc cho mọi ước mơ bạn đang ấp ủ sẽ tỏa sáng rực rỡ như dải cực quang giữa bầu trời đêm, và luôn có một ngọn đèn ấm áp chờ bạn trở về sau mỗi hành trình."\n\nBạn có thể nhấn 'Tụ lại Hộp quà' trong bảng Tùy chỉnh để ngắm các hạt sáng kết tinh lại lần nữa!`,
+        signature: "— Phép màu của những hạt sáng"
+      },
+
+      // 3. Nội dung chi tiết của 3 Khung kỷ niệm bên trái
+      cards: [
+        {
+          ornament: "✦ KHUNG KỶ NIỆM I ✦",
+          title: "Đêm Cực Quang Trên Đỉnh Tuyết",
+          imageUrl: "https://images.unsplash.com/photo-1531366936337-7c912a4589a7?auto=format&fit=crop&w=900&q=80",
+          content: "Giữa bầu trời đêm tĩnh lặng của tháng Chạp, những dải lụa ánh sáng xanh ngọc và tím biếc khẽ uốn lượn qua từng rặng thông phủ tuyết.\n\nHãy thử di chuột hoặc vuốt nhẹ trên màn hình để cảm nhận chiều sâu parallax của những dãy núi và luồng gió tuyết đang chuyển động.",
+          signature: "— Ký ức Phương Bắc"
+        },
+        {
+          ornament: "❀ KHUNG KỶ NIỆM II ❀",
+          title: "Vũ Điệu Cánh Hoa Trong Tuyết",
+          imageUrl: "https://images.unsplash.com/photo-1544273677-c433136021d4?auto=format&fit=crop&w=900&q=80",
+          content: "Không chỉ có băng giá, mùa đông còn dịu dàng bởi những cánh hoa mỏng manh xoay nghiêng theo từng cơn gió nhẹ.\n\nMỗi cánh hoa mang một sắc hồng phấn ấm áp, nhắc nhớ rằng sự sống và vẻ đẹp vẫn luôn âm thầm nở rộ ngay cả trong ngày lạnh nhất.",
+          signature: "— Sắc Hoa Mùa Đông"
+        },
+        {
+          ornament: "🕯 KHUNG KỶ NIỆM III 🕯",
+          title: "Ánh Đèn Ấm Bên Thềm Gỗ",
+          imageUrl: "https://images.unsplash.com/photo-1517299321609-52687d1bc55a?auto=format&fit=crop&w=900&q=80",
+          content: "Phía xa dưới chân núi là ánh đèn vàng hắt ra từ ô cửa sổ nhỏ. Chỉ một đốm sáng ấm áp cũng đủ sưởi ấm cả một thung lũng tuyết rơi.\n\nBật âm thanh ở góc trên bên phải để lắng nghe tiếng gió đông rì rào cùng tiếng chuông pha lê trong trẻo nhé!",
+          signature: "— Hơi Ấm Đêm Đông"
+        }
+      ],
+
+      // 4. Thông số hạt & hiệu năng
+      particles: {
+        baseSnowCount: 150,
+        basePetalCount: 34,
+        giftParticleCount: 280,
+        minFPSThreshold: 38
+      },
+
+      // 5. Đường dẫn nhạc nền mùa đông
+      bgmUrl: "https://blind-green-ci42vffb.edgeone.dev/"
+    };
+
+    /**
+     * ============================================================================
+     * HỆ THỐNG ÂM THANH KẾT HỢP NHẠC NỀN URL & HIỆU ỨNG WEB AUDIO API
+     * ============================================================================
+     */
+    class WinterAudioEngine {
+      constructor(bgmUrl) {
+        this.ctx = null;
+        this.isEnabled = true;
+        this.bgmAudio = new Audio(bgmUrl);
+        this.bgmAudio.loop = true;
+        this.bgmAudio.preload = "auto";
+        this.bgmAudio.volume = 0.65;
+        this.autoplayPending = false;
+      }
+
+      // Khởi tạo AudioContext cho các hiệu ứng chuông, giấy, hộp quà
+      initContext() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioCtx();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      // Thử tự động phát nhạc nền ngay khi tải trang (có fallback khi trình duyệt chặn autoplay)
+      tryAutoPlay(onStateChange) {
+        this.isEnabled = true;
+        this.bgmAudio.play().then(() => {
+          this.autoplayPending = false;
+          if (onStateChange) onStateChange(true);
+        }).catch(() => {
+          // Trình duyệt yêu cầu 1 thao tác chạm/click đầu tiên để mở khóa âm thanh
+          this.autoplayPending = true;
+          const unlockHandler = () => {
+            if (this.isEnabled && this.autoplayPending) {
+              this.initContext();
+              this.bgmAudio.play().then(() => {
+                this.autoplayPending = false;
+                if (onStateChange) onStateChange(true);
+              }).catch(() => {});
+            }
+            window.removeEventListener('pointerdown', unlockHandler);
+            window.removeEventListener('keydown', unlockHandler);
+            window.removeEventListener('touchstart', unlockHandler);
+          };
+          window.addEventListener('pointerdown', unlockHandler, { once: true });
+          window.addEventListener('keydown', unlockHandler, { once: true });
+          window.addEventListener('touchstart', unlockHandler, { once: true });
+        });
+      }
+
+      // Bật / tắt âm thanh tổng
+      toggle() {
+        this.initContext();
+        this.isEnabled = !this.isEnabled;
+        if (this.isEnabled) {
+          this.autoplayPending = false;
+          this.bgmAudio.play().catch(() => {});
+          this.playCrystalChime(880, 0.25);
+        } else {
+          this.bgmAudio.pause();
+        }
+        return this.isEnabled;
+      }
+
+      // Giữ tương thích với bộ điều khiển gió
+      modulateWind() {}
+
+      // Tiếng chuông pha lê trong trẻo khi chạm nút / thẻ
+      playCrystalChime(baseFreq = 1046.5, duration = 0.45) {
+        if (!this.isEnabled) return;
+        this.initContext();
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(baseFreq, now);
+        osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.5, now + duration);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.linearRampToValueAtTime(0.11, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + duration);
+      }
+
+      // Tiếng giấy xào xạc nhẹ khi mở phong bì / trải thư
+      playPaperRustle() {
+        if (!this.isEnabled) return;
+        this.initContext();
+        const now = this.ctx.currentTime;
+        const duration = 0.38;
+        const bufferSize = Math.floor(this.ctx.sampleRate * duration);
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.sin((i / bufferSize) * Math.PI);
+        }
+
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'highpass';
+        filter.frequency.value = 1400;
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.08, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start(now);
+      }
+
+      // Hợp âm leng keng ấm áp khi Hộp quà hạt sáng mở bung tỏa
+      playGiftSparkle() {
+        if (!this.isEnabled) return;
+        const notes = [523.25, 659.25, 783.99, 1046.5, 1318.5, 1567.98];
+        notes.forEach((freq, idx) => {
+          setTimeout(() => this.playCrystalChime(freq, 0.85), idx * 65);
+        });
+      }
+    }
+
+    /**
+     * ============================================================================
+     * BỘ QUẢN LÝ HỆ THỐNG ĐỒ HỌA MÙA ĐÔNG (CANVAS ENGINE + PARTICLE GIFT BOX)
+     * ============================================================================
+     */
+    class WinterSceneEngine {
+      constructor(canvas, audio) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d', { alpha: false });
+        this.audio = audio;
+
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        // Trạng thái tương tác chuột / cảm ứng & Parallax
+        this.pointer = {
+          x: this.width * 0.5,
+          y: this.height * 0.5,
+          vx: 0,
+          vy: 0,
+          isDown: false,
+          normX: 0,
+          normY: 0
+        };
+        this.smoothParallax = { x: 0, y: 0 };
+
+        // Thông số gió & mật độ hạt
+        this.baseWind = 0.45;
+        this.gustWind = 0;
+        this.densityMultiplier = 1.0;
+
+        // Các mảng thực thể đồ họa
+        this.stars = [];
+        this.snowflakes = [];
+        this.petals = [];
+        this.giftParticles = [];
+        this.ripples = [];
+        this.cursorTrails = [];
+
+        // Trạng thái hộp quà hạt sáng: 'forming' | 'formed' | 'burst'
+        this.giftState = 'forming';
+        this.giftPulsePhase = 0;
+
+        // Bộ giám sát hiệu năng (Performance Guard)
+        this.lastFrameTime = performance.now();
+        this.fpsHistory = [];
+        this.qualityLevel = 1.0;
+
+        this.resize();
+        this.initEntities();
+      }
+
+      // Cập nhật kích thước Canvas sắc nét theo DPR & tính lại tọa độ mục tiêu Hộp quà
+      resize() {
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+        this.canvas.width = Math.floor(this.width * this.dpr);
+        this.canvas.height = Math.floor(this.height * this.dpr);
+        this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+
+        if (this.giftParticles.length > 0) {
+          this.assignGiftTargets();
+        }
+      }
+
+      // Khởi tạo sao, tuyết, cánh hoa và các hạt sáng tạo hình Hộp quà
+      initEntities() {
+        // 1. Ngôi sao lấp lánh
+        this.stars = Array.from({ length: 90 }, () => ({
+          x: Math.random() * this.width,
+          y: Math.random() * this.height * 0.62,
+          r: Math.random() * 1.6 + 0.4,
+          phase: Math.random() * Math.PI * 2,
+          speed: 0.015 + Math.random() * 0.03
+        }));
+
+        // 2. Bông tuyết đa lớp chiều sâu (layer 0: xa, 1: trung, 2: gần)
+        const snowTotal = Math.floor(WINTER_CONFIG.particles.baseSnowCount * this.densityMultiplier * this.qualityLevel);
+        this.snowflakes = Array.from({ length: snowTotal }, () => this.createSnowflake(true));
+
+        // 3. Cánh hoa mùa đông xoay nghiêng mềm mại
+        const petalTotal = Math.floor(WINTER_CONFIG.particles.basePetalCount * this.densityMultiplier * this.qualityLevel);
+        this.petals = Array.from({ length: petalTotal }, () => this.createPetal(true));
+
+        // 4. Hạt sáng hội tụ thành Hộp quà
+        const giftCount = Math.floor(WINTER_CONFIG.particles.giftParticleCount * this.qualityLevel);
+        this.giftParticles = Array.from({ length: giftCount }, () => ({
+          x: Math.random() * this.width,
+          y: Math.random() * this.height,
+          vx: (Math.random() - 0.5) * 4,
+          vy: (Math.random() - 0.5) * 4,
+          tx: this.width * 0.5,
+          ty: this.height * 0.56,
+          size: Math.random() * 2.5 + 1.5,
+          color: '#fcd34d',
+          part: 'box',
+          phase: Math.random() * Math.PI * 2
+        }));
+
+        this.assignGiftTargets();
+      }
+
+      createSnowflake(randomY = false) {
+        const layer = Math.random() < 0.5 ? 0 : (Math.random() < 0.75 ? 1 : 2);
+        return {
+          x: Math.random() * this.width,
+          y: randomY ? Math.random() * this.height : -15,
+          layer,
+          r: layer === 0 ? (Math.random() * 1.4 + 0.8) : layer === 1 ? (Math.random() * 2.2 + 1.6) : (Math.random() * 3.2 + 2.5),
+          vy: (layer + 1) * (0.45 + Math.random() * 0.55),
+          swingAmp: 0.4 + Math.random() * 1.1,
+          swingFreq: 0.01 + Math.random() * 0.02,
+          phase: Math.random() * Math.PI * 2,
+          alpha: 0.35 + layer * 0.28
+        };
+      }
+
+      createPetal(randomY = false) {
+        return {
+          x: Math.random() * this.width,
+          y: randomY ? Math.random() * this.height : -20,
+          size: 5 + Math.random() * 5,
+          vy: 0.65 + Math.random() * 0.75,
+          rot: Math.random() * Math.PI * 2,
+          rotSpeed: (Math.random() - 0.5) * 0.045,
+          tilt: Math.random() * Math.PI,
+          tiltSpeed: 0.03 + Math.random() * 0.03,
+          swingPhase: Math.random() * Math.PI * 2,
+          hue: Math.random() > 0.35 ? '#fecdd3' : '#fbcfe8'
+        };
+      }
+
+      // Tính toán tọa độ mục tiêu để các hạt sáng xếp thành Hộp quà (Thân + Nắp + Nơ)
+      assignGiftTargets() {
+        const cx = this.width * 0.5;
+        const cy = this.height * 0.58;
+        const scale = Math.min(this.width / 1366, this.height / 768);
+        const boxW = 136 * Math.max(0.65, scale);
+        const boxH = 104 * Math.max(0.65, scale);
+        const lidW = boxW * 1.12;
+        const lidH = 26 * Math.max(0.65, scale);
+
+        const total = this.giftParticles.length;
+        this.giftParticles.forEach((p, i) => {
+          const ratio = i / total;
+
+          if (ratio < 0.56) {
+            // Thân hộp quà (viền + lưới ánh sáng bên trong)
+            const u = (Math.random() - 0.5) * boxW;
+            const v = (Math.random() - 0.5) * boxH;
+            const snapEdge = Math.random() < 0.45;
+            p.tx = cx + (snapEdge ? (Math.sign(u || 1) * boxW * 0.5) : u);
+            p.ty = cy + 16 * scale + (snapEdge ? v : (Math.sign(v || 1) * boxH * 0.5));
+            p.color = Math.abs(u) < 12 * scale ? '#fb7185' : '#7dd3fc';
+            p.part = 'body';
+          } else if (ratio < 0.80) {
+            // Nắp hộp quà tách nhẹ phía trên
+            const u = (Math.random() - 0.5) * lidW;
+            const v = (Math.random() - 0.5) * lidH;
+            p.tx = cx + u;
+            p.ty = cy - boxH * 0.5 + 2 * scale + v;
+            p.color = Math.abs(u) < 13 * scale ? '#f43f5e' : '#bae6fd';
+            p.part = 'lid';
+          } else {
+            // Chiếc nơ 2 cánh uốn cong trên đỉnh nắp hộp
+            const t = ((ratio - 0.80) / 0.20) * Math.PI * 2;
+            const bowW = 46 * Math.max(0.65, scale);
+            const bowH = 24 * Math.max(0.65, scale);
+            p.tx = cx + Math.sin(t) * bowW;
+            p.ty = cy - boxH * 0.5 - 18 * scale + Math.sin(t * 2) * bowH * 0.55;
+            p.color = '#fcd34d';
+            p.part = 'ribbon';
+          }
+        });
+      }
+
+      // Kích hoạt hiệu ứng mở / bung hạt sáng của Hộp quà
+      burstGiftBox() {
+        this.giftState = 'burst';
+        this.addRipple(this.width * 0.5, this.height * 0.58, '#fcd34d', 240);
+        this.giftParticles.forEach((p) => {
+          const angle = Math.atan2(p.y - this.height * 0.58, p.x - this.width * 0.5) + (Math.random() - 0.5) * 0.6;
+          const speed = 5 + Math.random() * 11;
+          p.vx = Math.cos(angle) * speed;
+          p.vy = Math.sin(angle) * speed - 3.5;
+        });
+
+        // Sau 3.4 giây tự động kết tinh lại thành hộp quà lấp lánh
+        clearTimeout(this.reformTimer);
+        this.reformTimer = setTimeout(() => {
+          this.reformGiftBox();
+        }, 3400);
+      }
+
+      reformGiftBox() {
+        this.assignGiftTargets();
+        this.giftState = 'forming';
+      }
+
+      addRipple(x, y, color = '#7dd3fc', maxRadius = 110) {
+        this.ripples.push({ x, y, r: 8, maxR: maxRadius, alpha: 0.75, color });
+      }
+
+      // Vòng lặp cập nhật & vẽ chính (60fps)
+      render(now) {
+        const dt = Math.min((now - this.lastFrameTime) / 16.666, 2.5);
+        this.lastFrameTime = now;
+        this.monitorPerformance(dt);
+
+        const ctx = this.ctx;
+        const w = this.width;
+        const h = this.height;
+        const timeSec = now * 0.001;
+
+        // Làm mượt chuyển động Parallax theo chuột / vuốt
+        this.smoothParallax.x += (this.pointer.normX - this.smoothParallax.x) * 0.06;
+        this.smoothParallax.y += (this.pointer.normY - this.smoothParallax.y) * 0.06;
+
+        // Giảm dần luồng gió giật do vuốt tay
+        this.gustWind *= 0.94;
+        const totalWind = this.baseWind + this.gustWind;
+        this.audio.modulateWind(totalWind);
+
+        // 1. NỀN TRỜI ĐÊM MÙA ĐÔNG CHUYỂN MÀU MƯỢT (ANIMATED SKY GRADIENT)
+        const skyShift = Math.sin(timeSec * 0.25) * 0.08;
+        const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+        skyGrad.addColorStop(0, '#060c18');
+        skyGrad.addColorStop(0.48 + skyShift, '#102342');
+        skyGrad.addColorStop(1, '#1c375e');
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(0, 0, w, h);
+
+        // 2. DẢI CỰC QUANG UỐN LƯỢN (AURORA BOREALIS)
+        this.drawAurora(ctx, w, h, timeSec);
+
+        // 3. NGÔI SAO LẤP LÁNH
+        this.stars.forEach((s) => {
+          s.phase += s.speed * dt;
+          const alpha = 0.25 + (Math.sin(s.phase) + 1) * 0.37;
+          ctx.fillStyle = `rgba(248, 250, 252, ${alpha.toFixed(3)})`;
+          ctx.beginPath();
+          ctx.arc(s.x - this.smoothParallax.x * 8, s.y - this.smoothParallax.y * 5, s.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        // 4. CÁC LỚP NÚI TUYẾT & RỪNG THÔNG PARALLAX
+        this.drawParallaxMountains(ctx, w, h);
+
+        // 5. VỆT SÁNG CON TRỎ & GỢN SÓNG CHẠM (TOUCH RIPPLES)
+        this.updateAndDrawTrailsAndRipples(ctx, dt);
+
+        // 6. TUYẾT RƠI ĐA LỚP & CÁNH HOA XOAY NGHIÊNG
+        this.updateAndDrawSnowAndPetals(ctx, w, h, totalWind, dt);
+
+        // 7. HẠT SÁNG HỘI TỤ TẠO THÀNH HỘP QUÀ
+        this.updateAndDrawGiftParticles(ctx, timeSec, dt);
+
+        requestAnimationFrame((t) => this.render(t));
+      }
+
+      drawAurora(ctx, w, h, t) {
+        ctx.save();
+        ctx.globalCompositeOperation = 'screen';
+        for (let band = 0; band < 2; band++) {
+          const grad = ctx.createLinearGradient(0, h * 0.08, w, h * 0.45);
+          if (band === 0) {
+            grad.addColorStop(0, 'rgba(56, 189, 248, 0.0)');
+            grad.addColorStop(0.35, 'rgba(45, 212, 191, 0.14)');
+            grad.addColorStop(0.7, 'rgba(129, 140, 248, 0.12)');
+            grad.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+          } else {
+            grad.addColorStop(0, 'rgba(167, 139, 250, 0.0)');
+            grad.addColorStop(0.5, 'rgba(56, 189, 248, 0.12)');
+            grad.addColorStop(1, 'rgba(52, 211, 153, 0.0)');
+          }
+
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.moveTo(0, h * 0.42);
+          for (let x = 0; x <= w; x += 60) {
+            const wave = Math.sin(x * 0.004 + t * (0.45 + band * 0.2) + band) * 38
+                       + Math.cos(x * 0.009 - t * 0.3) * 20;
+            ctx.lineTo(x, h * (0.20 + band * 0.06) + wave - this.smoothParallax.y * 12);
+          }
+          ctx.lineTo(w, h * 0.48);
+          ctx.closePath();
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      drawParallaxMountains(ctx, w, h) {
+        const px = this.smoothParallax.x;
+        const py = this.smoothParallax.y;
+
+        // Lớp núi xa
+        ctx.fillStyle = '#11223d';
+        ctx.beginPath();
+        ctx.moveTo(-40, h);
+        ctx.lineTo(-40, h * 0.72 - py * 10);
+        ctx.lineTo(w * 0.22 - px * 18, h * 0.56 - py * 10);
+        ctx.lineTo(w * 0.48 - px * 18, h * 0.68 - py * 10);
+        ctx.lineTo(w * 0.76 - px * 18, h * 0.53 - py * 10);
+        ctx.lineTo(w + 40, h * 0.70 - py * 10);
+        ctx.lineTo(w + 40, h);
+        ctx.closePath();
+        ctx.fill();
+
+        // Lớp đồi tuyết trung cảnh + đốm đèn ấm áp từ xa
+        ctx.fillStyle = '#0c182c';
+        ctx.beginPath();
+        ctx.moveTo(-50, h);
+        ctx.quadraticCurveTo(w * 0.25 - px * 32, h * 0.68 - py * 16, w * 0.52 - px * 32, h * 0.78 - py * 16);
+        ctx.quadraticCurveTo(w * 0.80 - px * 32, h * 0.86 - py * 16, w + 50, h * 0.73 - py * 16);
+        ctx.lineTo(w + 50, h);
+        ctx.closePath();
+        ctx.fill();
+
+        // Ánh đèn ấm áp từ ngôi nhà gỗ xa xa
+        const cabinX = w * 0.19 - px * 32;
+        const cabinY = h * 0.735 - py * 16;
+        const warmHalo = ctx.createRadialGradient(cabinX, cabinY, 1, cabinX, cabinY, 42);
+        warmHalo.addColorStop(0, 'rgba(252, 211, 77, 0.65)');
+        warmHalo.addColorStop(0.4, 'rgba(251, 146, 60, 0.2)');
+        warmHalo.addColorStop(1, 'rgba(251, 146, 60, 0)');
+        ctx.fillStyle = warmHalo;
+        ctx.beginPath();
+        ctx.arc(cabinX, cabinY, 42, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Nền tuyết tiền cảnh mượt mà
+        const groundGrad = ctx.createLinearGradient(0, h * 0.82, 0, h);
+        groundGrad.addColorStop(0, '#091221');
+        groundGrad.addColorStop(1, '#050a14');
+        ctx.fillStyle = groundGrad;
+        ctx.beginPath();
+        ctx.moveTo(-60, h);
+        ctx.quadraticCurveTo(w * 0.5 - px * 48, h * 0.80 - py * 22, w + 60, h * 0.86 - py * 22);
+        ctx.lineTo(w + 60, h);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      updateAndDrawTrailsAndRipples(ctx, dt) {
+        // Vệt sáng chuột mờ nhẹ
+        for (let i = this.cursorTrails.length - 1; i >= 0; i--) {
+          const tr = this.cursorTrails[i];
+          tr.alpha -= 0.035 * dt;
+          tr.r *= 0.96;
+          if (tr.alpha <= 0.01) {
+            this.cursorTrails.splice(i, 1);
+            continue;
+          }
+          ctx.fillStyle = `rgba(186, 230, 253, ${tr.alpha.toFixed(3)})`;
+          ctx.beginPath();
+          ctx.arc(tr.x, tr.y, tr.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Gợn sóng ánh sáng khi chạm / click
+        for (let i = this.ripples.length - 1; i >= 0; i--) {
+          const rp = this.ripples[i];
+          rp.r += (rp.maxR - rp.r) * 0.08 * dt;
+          rp.alpha -= 0.022 * dt;
+          if (rp.alpha <= 0.01) {
+            this.ripples.splice(i, 1);
+            continue;
+          }
+          ctx.save();
+          ctx.strokeStyle = rp.color;
+          ctx.globalAlpha = Math.max(0, rp.alpha);
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(rp.x, rp.y, rp.r, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      updateAndDrawSnowAndPetals(ctx, w, h, totalWind, dt) {
+        // Cập nhật và vẽ Tuyết rơi
+        for (let i = 0; i < this.snowflakes.length; i++) {
+          const s = this.snowflakes[i];
+          s.phase += s.swingFreq * dt;
+          const depthFactor = 0.5 + s.layer * 0.45;
+          s.x += (totalWind * depthFactor + Math.sin(s.phase) * s.swingAmp) * dt;
+          s.y += s.vy * dt;
+
+          // Tương tác đẩy nhẹ khi con trỏ / ngón tay lướt gần
+          const dx = s.x - this.pointer.x;
+          const dy = s.y - this.pointer.y;
+          const distSq = dx * dx + dy * dy;
+          if (distSq < 9000 && distSq > 1) {
+            const force = (1 - Math.sqrt(distSq) / 95) * (this.pointer.isDown ? -2.2 : 1.6);
+            s.x += (dx / Math.sqrt(distSq)) * force * dt;
+            s.y += (dy / Math.sqrt(distSq)) * force * dt;
+          }
+
+          if (s.y > h + 12) {
+            Object.assign(s, this.createSnowflake(false));
+          }
+          if (s.x > w + 15) s.x = -10;
+          if (s.x < -15) s.x = w + 10;
+
+          ctx.fillStyle = `rgba(241, 245, 249, ${s.alpha})`;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Cập nhật và vẽ Cánh hoa mùa đông xoay nghiêng 3D giả lập
+        for (let i = 0; i < this.petals.length; i++) {
+          const p = this.petals[i];
+          p.swingPhase += 0.025 * dt;
+          p.rot += p.rotSpeed * dt;
+          p.tilt += p.tiltSpeed * dt;
+
+          p.x += (totalWind * 1.15 + Math.cos(p.swingPhase) * 1.35) * dt;
+          p.y += p.vy * dt;
+
+          if (p.y > h + 20) {
+            Object.assign(p, this.createPetal(false));
+          }
+          if (p.x > w + 20) p.x = -15;
+          if (p.x < -20) p.x = w + 15;
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+          ctx.scale(1, Math.max(0.25, Math.abs(Math.cos(p.tilt))));
+          ctx.fillStyle = p.hue;
+          ctx.globalAlpha = 0.82;
+          ctx.beginPath();
+          ctx.moveTo(0, -p.size);
+          ctx.bezierCurveTo(p.size, -p.size * 0.5, p.size * 0.8, p.size, 0, p.size);
+          ctx.bezierCurveTo(-p.size * 0.8, p.size, -p.size, -p.size * 0.5, 0, -p.size);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      updateAndDrawGiftParticles(ctx, timeSec, dt) {
+        this.giftPulsePhase += 0.04 * dt;
+        const cx = this.width * 0.5;
+        const cy = this.height * 0.58;
+
+        // Hào quang nền phía sau hộp quà
+        const glowRadius = 115 + Math.sin(this.giftPulsePhase) * 12;
+        const boxGlow = ctx.createRadialGradient(cx, cy, 10, cx, cy, glowRadius);
+        boxGlow.addColorStop(0, 'rgba(252, 211, 77, 0.22)');
+        boxGlow.addColorStop(0.55, 'rgba(56, 189, 248, 0.10)');
+        boxGlow.addColorStop(1, 'rgba(56, 189, 248, 0)');
+        ctx.fillStyle = boxGlow;
+        ctx.beginPath();
+        ctx.arc(cx, cy, glowRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+
+        for (let i = 0; i < this.giftParticles.length; i++) {
+          const p = this.giftParticles[i];
+          p.phase += 0.06 * dt;
+
+          // Nếu người dùng chạm giữ trên màn hình, các hạt hút nhẹ về điểm chạm
+          if (this.pointer.isDown && this.giftState !== 'burst') {
+            const dx = this.pointer.x - p.x;
+            const dy = this.pointer.y - p.y;
+            p.vx += dx * 0.004 * dt;
+            p.vy += dy * 0.004 * dt;
+            p.vx *= 0.90;
+            p.vy *= 0.90;
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+          } else if (this.giftState === 'burst') {
+            p.vy += 0.08 * dt; // Trọng lực nhẹ sau khi bung tỏa
+            p.vx *= 0.97;
+            p.vy *= 0.97;
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+          } else {
+            // Hội tụ đàn hồi về vị trí tạo hình Hộp quà + lơ lửng nhẹ
+            const hoverY = Math.sin(timeSec * 2.2 + p.phase * 0.2) * 3.5;
+            const lidLift = p.part === 'lid' || p.part === 'ribbon'
+              ? Math.sin(timeSec * 2.5) * 2.5
+              : 0;
+            const targetX = p.tx - this.smoothParallax.x * 16;
+            const targetY = p.ty + hoverY - lidLift - this.smoothParallax.y * 12;
+
+            p.x += (targetX - p.x) * 0.085 * dt;
+            p.y += (targetY - p.y) * 0.085 * dt;
+          }
+
+          const twinkle = 0.65 + Math.sin(p.phase) * 0.35;
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = twinkle;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      // Tự động giảm bớt số hạt nếu thiết bị yếu (FPS thấp)
+      monitorPerformance(dt) {
+        const currentFPS = 60 / Math.max(dt, 0.5);
+        this.fpsHistory.push(currentFPS);
+        if (this.fpsHistory.length > 90) {
+          const avgFPS = this.fpsHistory.reduce((a, b) => a + b, 0) / this.fpsHistory.length;
+          this.fpsHistory = [];
+          if (avgFPS < WINTER_CONFIG.particles.minFPSThreshold && this.qualityLevel > 0.5) {
+            this.qualityLevel = Math.max(0.5, this.qualityLevel - 0.25);
+            this.initEntities();
+          }
+        }
+      }
+    }
+
+    /**
+     * ============================================================================
+     * KHỞI TẠO ỨNG DỤNG, ĐỒNG BỘ TỶ LỆ PC/MOBILE & XỬ LÝ SỰ KIỆN TƯƠNG TÁC
+     * ============================================================================
+     */
+    (function bootstrapWinterApp() {
+      const stage = document.getElementById('unified-stage');
+      const canvas = document.getElementById('winter-canvas');
+      const atmosphere = document.getElementById('atmosphere-overlay');
+      const cursorRing = document.getElementById('custom-cursor-ring');
+      const cursorDot = document.getElementById('custom-cursor-dot');
+
+      const audioEngine = new WinterAudioEngine(WINTER_CONFIG.bgmUrl);
+      const sceneEngine = new WinterSceneEngine(canvas, audioEngine);
+
+      // 1. Cơ chế giữ nguyên bố cục đồng nhất giữa PC và Điện thoại
+      function syncUnifiedStageScale() {
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const baseW = 1366;
+        const baseH = 768;
+        const scale = Math.min(vw / baseW, vh / baseH);
+        stage.style.transform = `scale(${scale.toFixed(4)})`;
+        sceneEngine.resize();
+      }
+
+      window.addEventListener('resize', syncUnifiedStageScale);
+      syncUnifiedStageScale();
+
+      // 2. Xử lý sự kiện chuột & cảm ứng (Parallax, Gió vuốt, Chạm giữ, Custom Cursor)
+      let lastPointerX = window.innerWidth * 0.5;
+      let lastPointerY = window.innerHeight * 0.5;
+
+      function handlePointerMove(clientX, clientY, isTouch = false) {
+        const dx = clientX - lastPointerX;
+        const dy = clientY - lastPointerY;
+        lastPointerX = clientX;
+        lastPointerY = clientY;
+
+        sceneEngine.pointer.x = clientX;
+        sceneEngine.pointer.y = clientY;
+        sceneEngine.pointer.normX = (clientX / window.innerWidth) * 2 - 1;
+        sceneEngine.pointer.normY = (clientY / window.innerHeight) * 2 - 1;
+
+        // Vuốt nhanh / di chuột mạnh tạo luồng gió thổi tuyết
+        if (Math.abs(dx) > 4) {
+          sceneEngine.gustWind = Math.max(-5.5, Math.min(5.5, sceneEngine.gustWind + dx * 0.045));
+        }
+
+        // Vệt sáng trên PC
+        if (!isTouch) {
+          cursorDot.style.transform = `translate3d(${clientX}px, ${clientY}px, 0)`;
+          cursorRing.style.transform = `translate3d(${clientX}px, ${clientY}px, 0)`;
+          sceneEngine.cursorTrails.push({ x: clientX, y: clientY, r: 4.5, alpha: 0.45 });
+        }
+      }
+
+      window.addEventListener('mousemove', (e) => {
+        handlePointerMove(e.clientX, e.clientY, false);
+        const interactiveTarget = e.target.closest('[data-cursor]');
+        cursorRing.classList.remove('cursor-hover', 'cursor-gift');
+        if (interactiveTarget) {
+          const mode = interactiveTarget.getAttribute('data-cursor');
+          if (mode === 'gift') cursorRing.classList.add('cursor-gift');
+          else cursorRing.classList.add('cursor-hover');
+        }
+      }, { passive: true });
+
+      window.addEventListener('mousedown', (e) => {
+        sceneEngine.pointer.isDown = true;
+        sceneEngine.addRipple(e.clientX, e.clientY, '#7dd3fc', 95);
+      });
+
+      window.addEventListener('mouseup', () => {
+        sceneEngine.pointer.isDown = false;
+      });
+
+      // Hỗ trợ đầy đủ cảm ứng đa điểm / vuốt / chạm giữ trên điện thoại
+      window.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 0) {
+          const t = e.touches[0];
+          lastPointerX = t.clientX;
+          lastPointerY = t.clientY;
+          sceneEngine.pointer.isDown = true;
+          sceneEngine.pointer.x = t.clientX;
+          sceneEngine.pointer.y = t.clientY;
+          sceneEngine.addRipple(t.clientX, t.clientY, '#bae6fd', 110);
+        }
+      }, { passive: true });
+
+      window.addEventListener('touchmove', (e) => {
+        if (e.touches.length > 0) {
+          const t = e.touches[0];
+          handlePointerMove(t.clientX, t.clientY, true);
+        }
+      }, { passive: true });
+
+      window.addEventListener('touchend', () => {
+        sceneEngine.pointer.isDown = false;
+      }, { passive: true });
+
+      // Hỗ trợ cảm biến nghiêng điện thoại (DeviceOrientation) cho Parallax mượt mà
+      window.addEventListener('deviceorientation', (e) => {
+        if (e.gamma !== null && e.beta !== null) {
+          sceneEngine.pointer.normX = Math.max(-1, Math.min(1, e.gamma / 30));
+          sceneEngine.pointer.normY = Math.max(-1, Math.min(1, (e.beta - 45) / 30));
+        }
+      }, { passive: true });
+
+      // 3. Hệ thống Modal & Hiệu ứng gõ chữ tự nhiên (Typewriter)
+      const modal = document.getElementById('story-modal');
+      const modalOrnament = document.getElementById('modal-ornament');
+      const modalPhotoBox = document.getElementById('modal-photo-box');
+      const modalPhoto = document.getElementById('modal-photo');
+      const modalTitle = document.getElementById('modal-title');
+      const modalBody = document.getElementById('modal-body');
+      const modalSign = document.getElementById('modal-sign');
+      let typewriterTimer = null;
+
+      function openStoryModal({ ornament, title, imageUrl, content, signature }, warmAtmosphere = true) {
+        clearInterval(typewriterTimer);
+        modalOrnament.textContent = ornament;
+        modalTitle.textContent = title;
+        modalSign.textContent = signature;
+        modalBody.textContent = '';
+
+        if (imageUrl) {
+          modalPhoto.src = imageUrl;
+          modalPhotoBox.classList.add('has-photo');
+        } else {
+          modalPhoto.src = '';
+          modalPhotoBox.classList.remove('has-photo');
+        }
+
+        if (warmAtmosphere) atmosphere.classList.add('warm-focus');
+        modal.classList.add('active');
+
+        // Hiện chữ mượt mà từng cụm ký tự
+        let idx = 0;
+        typewriterTimer = setInterval(() => {
+          idx += 2;
+          modalBody.textContent = content.slice(0, idx);
+          if (idx >= content.length) {
+            clearInterval(typewriterTimer);
+          }
+        }, 16);
+      }
+
+      function closeStoryModal() {
+        clearInterval(typewriterTimer);
+        modal.classList.remove('active');
+        atmosphere.classList.remove('warm-focus');
+        document.getElementById('envelope-card').classList.remove('opened');
+        audioEngine.playCrystalChime(784, 0.35);
+      }
+
+      document.getElementById('btn-close-modal').addEventListener('click', closeStoryModal);
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeStoryModal();
+      });
+
+      // 4. Tương tác mở Lá thư
+      function triggerOpenLetter() {
+        const envelopeCard = document.getElementById('envelope-card');
+        envelopeCard.classList.add('opened');
+        audioEngine.playPaperRustle();
+        setTimeout(() => {
+          openStoryModal(WINTER_CONFIG.letter, true);
+        }, 420);
+      }
+
+      document.getElementById('btn-open-letter').addEventListener('click', triggerOpenLetter);
+      document.getElementById('envelope-trigger').addEventListener('click', triggerOpenLetter);
+      document.getElementById('btn-open-letter-quick').addEventListener('click', () => {
+        document.getElementById('control-drawer').classList.remove('open');
+        triggerOpenLetter();
+      });
+
+      // 5. Tương tác Hộp quà hạt sáng
+      function triggerGiftBoxSurprise() {
+        audioEngine.playGiftSparkle();
+        sceneEngine.burstGiftBox();
+        const hint = document.getElementById('gift-hint');
+        hint.textContent = '✨ Điều ước đang tỏa sáng...';
+        setTimeout(() => {
+          openStoryModal(WINTER_CONFIG.giftMessage, true);
+          hint.textContent = '✨ Chạm vào Hộp Quà Hạt Sáng';
+        }, 780);
+      }
+
+      document.getElementById('gift-hitbox').addEventListener('click', triggerGiftBoxSurprise);
+
+      // 6. Tương tác 3 Khung kỷ niệm mùa đông + hiệu ứng nghiêng 3D nhẹ
+      document.querySelectorAll('.winter-card').forEach((card) => {
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const rx = ((e.clientY - rect.top) / rect.height - 0.5) * -10;
+          const ry = ((e.clientX - rect.left) / rect.width - 0.5) * 10;
+          card.style.transform = `perspective(700px) rotateX(${rx.toFixed(1)}deg) rotateY(${ry.toFixed(1)}deg) translateY(-4px)`;
+        });
+
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = '';
+        });
+
+        card.addEventListener('click', () => {
+          const idx = Number(card.getAttribute('data-card-index')) || 0;
+          audioEngine.playCrystalChime(987.77, 0.4);
+          openStoryModal(WINTER_CONFIG.cards[idx], true);
+        });
+      });
+
+      // 7. Điều khiển Âm thanh & Bảng tùy chỉnh thu gọn
+      const btnSound = document.getElementById('btn-sound');
+      const soundLabel = document.getElementById('sound-label');
+
+      function updateSoundButtonUI(active) {
+        btnSound.classList.toggle('active-sound', active);
+        soundLabel.textContent = active ? 'Âm thanh: Bật' : 'Âm thanh: Tắt';
+      }
+
+      // Tự động bật và phát nhạc nền ngay khi mở trang
+      audioEngine.tryAutoPlay(updateSoundButtonUI);
+
+      btnSound.addEventListener('click', () => {
+        const active = audioEngine.toggle();
+        updateSoundButtonUI(active);
+      });
+
+      const drawer = document.getElementById('control-drawer');
+      document.getElementById('btn-toggle-drawer').addEventListener('click', () => {
+        audioEngine.playCrystalChime(1174.66, 0.25);
+        drawer.classList.toggle('open');
+      });
+
+      document.getElementById('slider-density').addEventListener('input', (e) => {
+        const val = Number(e.target.value);
+        document.getElementById('val-density').textContent = `${val}%`;
+        sceneEngine.densityMultiplier = val / 100;
+        sceneEngine.initEntities();
+      });
+
+      document.getElementById('slider-wind').addEventListener('input', (e) => {
+        const val = Number(e.target.value);
+        sceneEngine.baseWind = val / 35;
+        const label = Math.abs(val) < 15 ? 'Êm dịu' : Math.abs(val) < 60 ? 'Nhẹ nhàng' : 'Gió lớn';
+        document.getElementById('val-wind').textContent = label;
+      });
+
+      document.getElementById('btn-reform-gift').addEventListener('click', () => {
+        audioEngine.playCrystalChime(1318.5, 0.4);
+        sceneEngine.reformGiftBox();
+      });
+
+      document.getElementById('btn-burst-magic').addEventListener('click', () => {
+        audioEngine.playGiftSparkle();
+        sceneEngine.burstGiftBox();
+      });
+
+      document.getElementById('btn-toggle-warmth').addEventListener('click', () => {
+        audioEngine.playCrystalChime(880, 0.3);
+        atmosphere.classList.toggle('warm-focus');
+      });
+
+      // Bắt đầu vòng lặp đồ họa
+      requestAnimationFrame((t) => sceneEngine.render(t));
+    })();
+  </script>
+</body>
+</html>
